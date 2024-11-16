@@ -1,0 +1,32 @@
+package com.juan_zubiri.monitoreo.model;
+
+import jakarta.persistence.*;
+import lombok.Data;
+
+import java.io.Serializable;
+import java.util.List;
+
+@Data
+@Entity
+@Table(name = "country")
+public class Country implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
+    @Id
+    @Column(name = "id_country")
+    private Long id;
+
+    @Column(name = "name", nullable = false)
+    private String name;
+
+    @Column(name = "flag_url", nullable = false)
+    private String flagUrl;
+
+    @OneToMany(mappedBy = "country", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Plant> plants;
+}
+
+// mappedBy: la relacion viene de plant
+//Cascade: si elimino un Pais se eliminan las Plantas asociadas al pais
+//orphanRemoval: seguramos que no queden Plantas sin paises asociados
