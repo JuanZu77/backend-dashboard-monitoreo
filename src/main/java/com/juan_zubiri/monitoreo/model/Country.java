@@ -13,10 +13,11 @@ public class Country implements Serializable {
     private static final long serialVersionUID = 1L;
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_country")
     private Long id;
 
-    @Column(name = "name", nullable = false)
+    @Column(name = "name", nullable = false, unique = true)
     private String name;
 
     @Column(name = "flag_url", nullable = false)

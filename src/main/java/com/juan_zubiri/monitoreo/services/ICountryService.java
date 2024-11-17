@@ -14,4 +14,6 @@ public interface ICountryService {
 	public ResponseEntity<CountryResponseRest> update(Country country, Long id);
 	
 	public ResponseEntity<CountryResponseRest> deleteById(Long id);
+	
+	public ResponseEntity<CountryResponseRest> loadCountriesFromApi();
 }
