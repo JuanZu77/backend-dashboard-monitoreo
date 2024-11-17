@@ -39,6 +39,7 @@ public class PlantServiceImpl implements IPlantService{
 	}
 
 	@Override
+	@Transactional(readOnly = true)
 	public ResponseEntity<PlantResponseRest> searchById(Long id) {
 		 
 		PlantResponseRest response = new PlantResponseRest();
@@ -59,6 +60,7 @@ public class PlantServiceImpl implements IPlantService{
 	}
 
 	@Override
+	@Transactional
 	public ResponseEntity<PlantResponseRest> save(Plant plant) {
 		
 		PlantResponseRest response = new PlantResponseRest();
@@ -86,6 +88,7 @@ public class PlantServiceImpl implements IPlantService{
 	}
 
 	@Override
+	@Transactional
 	public ResponseEntity<PlantResponseRest> update(Plant plant, Long id) {
 		
 		PlantResponseRest response = new PlantResponseRest();
@@ -112,6 +115,7 @@ public class PlantServiceImpl implements IPlantService{
 	}
 
 	@Override
+	@Transactional
 	public ResponseEntity<PlantResponseRest> deleteById(Long id) {
 		
 		PlantResponseRest response = new PlantResponseRest();

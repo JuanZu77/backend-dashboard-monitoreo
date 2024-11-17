@@ -18,8 +18,8 @@ public class Sensors implements Serializable {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "id_lectures", nullable = false)
-    private Lectures lecture;
+    @JoinColumn(name = "id_readings", nullable = false)
+    private Readings readings;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "sensors_type", nullable = false)

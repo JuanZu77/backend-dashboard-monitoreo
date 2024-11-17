@@ -29,6 +29,6 @@ public class Plant implements Serializable {
     private String name;
 
     @OneToMany(mappedBy = "plant", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Lectures> lectures;
+    private List<Readings> readings;
 
 }

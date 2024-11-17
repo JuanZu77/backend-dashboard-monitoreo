@@ -38,7 +38,7 @@ public class CountryRestController {
 	 
 	 
 	 @PostMapping("/countries")
-		public ResponseEntity<CountryResponseRest> saveCountries(@RequestBody Country  country){
+		public ResponseEntity<CountryResponseRest> saveCountries(@RequestBody Country country){
 			
 			 ResponseEntity<CountryResponseRest> response = countryService.save(country);
 			 return response;
@@ -54,7 +54,7 @@ public class CountryRestController {
 	 
 	 
 	 @DeleteMapping("/countries/{id}")
-	public ResponseEntity<CountryResponseRest> delete( @PathVariable Long id){
+	public ResponseEntity<CountryResponseRest> delete(@PathVariable Long id){
 		
 		 ResponseEntity<CountryResponseRest> response = countryService.deleteById(id);
 		 return response;
