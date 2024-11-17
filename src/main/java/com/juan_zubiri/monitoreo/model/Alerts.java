@@ -18,8 +18,8 @@ public class Alerts implements Serializable {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "id_lecture", nullable = false)
-    private Lectures lecture;
+    @JoinColumn(name = "id_readings", nullable = false)
+    private Readings readings;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "alerts_type", nullable = false)

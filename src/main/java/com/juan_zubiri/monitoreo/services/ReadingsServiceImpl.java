@@ -10,25 +10,25 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.juan_zubiri.monitoreo.dao.LectureRepository;
-import com.juan_zubiri.monitoreo.model.Lectures;
-import com.juan_zubiri.monitoreo.response.LecturesResponseRest;
+import com.juan_zubiri.monitoreo.dao.ReadingsRepository;
+import com.juan_zubiri.monitoreo.model.Readings;
+import com.juan_zubiri.monitoreo.response.ReadingsResponseRest;
 
 @Service
-public class LecturesServiceImpl implements ILecturesService{
+public class ReadingsServiceImpl implements IReadingsService{
 	
 	@Autowired
-	private LectureRepository lectureRepository;
+	private ReadingsRepository lectureRepository;
 	
 	@Override
 	@Transactional(readOnly = true)
-	public ResponseEntity<LecturesResponseRest> search() {
+	public ResponseEntity<ReadingsResponseRest> search() {
 		
-		LecturesResponseRest response = new LecturesResponseRest();
+		ReadingsResponseRest response = new ReadingsResponseRest();
 		
 		 try {
-		    	List<Lectures> plants = lectureRepository.findAll(); 
-		        response.getLecturesResponse().setLectures(plants);
+		    	List<Readings> plants = lectureRepository.findAll(); 
+		        response.getReadingsResponse().setReadings(plants);
 		        response.setMetadata("Respuesta exitosa", "00", "Consulta exitosa");
 		        return ResponseEntity.ok(response);
 		    } catch (Exception e) {
@@ -39,15 +39,15 @@ public class LecturesServiceImpl implements ILecturesService{
 
 	@Override
 	@Transactional(readOnly = true)
-	public ResponseEntity<LecturesResponseRest> searchById(Long id) {
+	public ResponseEntity<ReadingsResponseRest> searchById(Long id) {
 	
 
-		LecturesResponseRest response = new LecturesResponseRest();
+		ReadingsResponseRest response = new ReadingsResponseRest();
 		
 		try {
-	        Optional<Lectures> lecture = lectureRepository.findById(id);
+	        Optional<Readings> lecture = lectureRepository.findById(id);
 	        if (lecture.isPresent()) {
-	            response.getLecturesResponse().setLectures(List.of(lecture.get()));
+	            response.getReadingsResponse().setReadings(List.of(lecture.get()));
 	            response.setMetadata("Respuesta exitosa", "00", "Consulta exitosa");
 	            return ResponseEntity.ok(response);
 	        } else {
@@ -62,16 +62,16 @@ public class LecturesServiceImpl implements ILecturesService{
 
 	@Override
 	@Transactional
-	public ResponseEntity<LecturesResponseRest> save(Lectures lectures) {
+	public ResponseEntity<ReadingsResponseRest> save(Readings readings) {
 	
-		LecturesResponseRest response = new LecturesResponseRest();
+		ReadingsResponseRest response = new ReadingsResponseRest();
 		try {
         // guardo la lectura
-        Lectures savedLecture = lectureRepository.save(lectures);
+        Readings savedLecture = lectureRepository.save(readings);
 
         // respuesta
         response.setMetadata("Éxito", "200", "Lectura guardada correctamente");
-        response.getLecturesResponse().setLectures(Collections.singletonList(savedLecture));
+        response.getReadingsResponse().setReadings(Collections.singletonList(savedLecture));
         return ResponseEntity.ok(response);
 		
        } catch (Exception e) {
@@ -83,18 +83,18 @@ public class LecturesServiceImpl implements ILecturesService{
 
 	@Override
 	@Transactional
-	public ResponseEntity<LecturesResponseRest> update(Lectures lectures, Long id) {
+	public ResponseEntity<ReadingsResponseRest> update(Readings readings, Long id) {
 		
-		LecturesResponseRest response = new LecturesResponseRest();
+		ReadingsResponseRest response = new ReadingsResponseRest();
 		
 		try {
-	        Optional<Lectures> lectureOptional = lectureRepository.findById(id);
+	        Optional<Readings> lectureOptional = lectureRepository.findById(id);
 	        if (lectureOptional.isPresent()) {
-	            Lectures lectureToUpdate = lectureOptional.get();
-	            lectureToUpdate.setLectureNumber(lectures.getLectureNumber()); 
+	            Readings lectureToUpdate = lectureOptional.get();
+	            lectureToUpdate.setReadings_number(readings.getReadings_number()); 
 	           
 	            lectureRepository.save(lectureToUpdate);
-	            response.getLecturesResponse().setLectures(List.of(lectureToUpdate));
+	            response.getReadingsResponse().setReadings(List.of(lectureToUpdate));
 	            response.setMetadata("Respuesta exitosa", "00", "Lectura actualizada correctamente");
 	            return ResponseEntity.ok(response);
 	        } else {
@@ -110,12 +110,12 @@ public class LecturesServiceImpl implements ILecturesService{
 
 	@Override
 	@Transactional
-	public ResponseEntity<LecturesResponseRest> deleteById(Long id) {
+	public ResponseEntity<ReadingsResponseRest> deleteById(Long id) {
 		
-		LecturesResponseRest response = new LecturesResponseRest();
+		ReadingsResponseRest response = new ReadingsResponseRest();
 		
 		 try {
-		        Optional<Lectures> lectureOptional = lectureRepository.findById(id);
+		        Optional<Readings> lectureOptional = lectureRepository.findById(id);
 		        if (lectureOptional.isPresent()) {
 		            lectureRepository.deleteById(id);
 		            response.setMetadata("Respuesta exitosa", "00", "Lectura eliminada correctamente");
