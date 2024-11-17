@@ -29,4 +29,4 @@ public class Country implements Serializable {
 
 // mappedBy: la relacion viene de plant
 //Cascade: si elimino un Pais se eliminan las Plantas asociadas al pais
-//orphanRemoval: seguramos que no queden Plantas sin paises asociados
+//orphanRemoval: me aseguro que no queden Plantas sin paises asociados

@@ -141,50 +141,49 @@ public class CountryServiceImpl implements ICountryService{
 	    try {
 	        String apiUrl = "https://restcountries.com/v3/all";
 
-	        // Consumo de la API
 	        ResponseEntity<Object[]> apiResponse = restTemplate.getForEntity(apiUrl, Object[].class);
 	        Object[] countriesFromApi = apiResponse.getBody();
 
 	        if (countriesFromApi != null) {
-	            // Obtener todos los nombres existentes en la base de datos
+	            // debo obtener todos los nombres existentes en la bd
 	            Set<String> existingNames = new HashSet<>(countryRepository.findAllNames());
 
-	            // Recorrer y mapear los datos
+	            // recorro la api
 	            List<Country> countries = Arrays.stream(countriesFromApi)
 	                .map(countryObject -> {
 	                    Map<?, ?> countryMap = (Map<?, ?>) countryObject;
 
-	                    // Obtener el nombre
+	                    // obtengo el nombre
 	                    Map<?, ?> nameMap = (Map<?, ?>) countryMap.get("name");
 	                    if (nameMap == null || nameMap.get("common") == null) {
-	                        return null; // Salta si falta el nombre
+	                        return null; 
 	                    }
 	                    String name = nameMap.get("common").toString();
 
-	                    // Verificar si ya existe
+	                    // verificar si existen paises con el nombre cada vez que corra la app
 	                    if (existingNames.contains(name)) {
 	                        return null; // Salta duplicados
 	                    }
 
-	                    // Obtener el URL de la bandera (primer elemento del array)
+	                    // debo obtener la URL de la bandera 
 	                    List<?> flagsList = (List<?>) countryMap.get("flags");
 	                    if (flagsList == null || flagsList.isEmpty()) {
-	                        return null; // Salta si falta la bandera
+	                        return null; 
 	                    }
 	                    String flagUrl = flagsList.get(0).toString();
 
-	                    // Crear el objeto Country
+	                    // creo las instancias de country
 	                    Country country = new Country();
 	                    country.setName(name);
 	                    country.setFlagUrl(flagUrl);
 
 	                    return country;
 	                })
-	                .filter(Objects::nonNull) // Filtra nulos
+	                .filter(Objects::nonNull) // filtro los nulos si existen
 	                .collect(Collectors.toList());
 
 	            if (!countries.isEmpty()) {
-	                // Guardar solo los nuevos países
+	                // guaardo los paises
 	                countryRepository.saveAll(countries);
 	            }
 
@@ -199,58 +198,6 @@ public class CountryServiceImpl implements ICountryService{
 	        return ResponseEntity.status(500).body(response);
 	    }
 	}
-
-	
-//	@Override
-//	public ResponseEntity<CountryResponseRest> loadCountriesFromApi() {
-//	    CountryResponseRest response = new CountryResponseRest();
-//	    try {
-//	     
-//	        String apiUrl = "https://restcountries.com/v3/all";
-//
-//	        //comsumo api
-//	        ResponseEntity<Object[]> apiResponse = restTemplate.getForEntity(apiUrl, Object[].class);
-//	        Object[] countriesFromApi = apiResponse.getBody();
-//
-//	        // debo verificar la existencia de paises
-//	        if (countriesFromApi != null) {
-//	            // Recorrer y mapear los datos
-//	            List<Country> countries = Arrays.stream(countriesFromApi)
-//	                    .map(countryObject -> {
-//	                        Map<?, ?> countryMap = (Map<?, ?>) countryObject;
-//
-//	                        // Obtener el nombre
-//	                        Map<?, ?> nameMap = (Map<?, ?>) countryMap.get("name");
-//	                        String name = nameMap.get("common").toString();
-//
-//	                        // Obtener el URL de la bandera (primer elemento del array)
-//	                        List<?> flagsList = (List<?>) countryMap.get("flags");
-//	                        String flagUrl = flagsList.get(0).toString();
-//
-//	                        // Crear el objeto Country
-//	                        Country country = new Country();
-//	                        country.setName(name);
-//	                        country.setFlagUrl(flagUrl);
-//
-//	                        return country;
-//	                    })
-//	                    .collect(Collectors.toList());
-//
-//	            // Guardar en la base de datos
-//	            countryRepository.saveAll(countries);
-//
-//	            response.setMetadata("Carga exitosa", "00", "Países cargados desde la API");
-//	            return ResponseEntity.ok(response);
-//	        } else {
-//	            response.setMetadata("Error en la carga", "-1", "No se encontraron datos en la API");
-//	            return ResponseEntity.noContent().build();
-//	        }
-//	    } catch (Exception e) {
-//	        response.setMetadata("Error en la carga", "-1", "Error al consumir la API: " + e.getMessage());
-//	        return ResponseEntity.status(500).body(response);
-//	    }
-//	}
-	
 
 
 }
