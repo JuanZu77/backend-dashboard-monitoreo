@@ -12,9 +12,9 @@ public interface ILecturesService {
 	public ResponseEntity<LecturesResponseRest> search();
 	public ResponseEntity<LecturesResponseRest> searchById(Long id);
 	
-	public ResponseEntity<LecturesResponseRest> save(Lectures Lectures);
+	public ResponseEntity<LecturesResponseRest> save(Lectures lectures);
 	
-	public ResponseEntity<LecturesResponseRest> update(Lectures Lectures, Long id);
+	public ResponseEntity<LecturesResponseRest> update(Lectures lectures, Long id);
 	
 	public ResponseEntity<LecturesResponseRest> deleteById(Long id);
 }
