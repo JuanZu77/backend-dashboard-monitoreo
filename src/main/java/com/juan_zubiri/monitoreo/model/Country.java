@@ -2,7 +2,6 @@ package com.juan_zubiri.monitoreo.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
-
 import java.io.Serializable;
 import java.util.List;
 
