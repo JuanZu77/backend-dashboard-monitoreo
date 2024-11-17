@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -11,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
 import com.juan_zubiri.monitoreo.dao.CountryRepository;
@@ -27,10 +29,11 @@ public class CountryServiceImpl implements ICountryService{
     private RestTemplate restTemplate;
 
 	@Override
+	@Transactional(readOnly = true)
 	public ResponseEntity<CountryResponseRest> search() {
 		 CountryResponseRest response = new CountryResponseRest();
 		    try {
-		        List<Country> countries = countryRepository.findAll(); 
+		    	List<Country> countries = countryRepository.findAll(); 
 		        response.getCountryResponse().setCountry(countries);
 		        response.setMetadata("Respuesta exitosa", "00", "Consulta exitosa");
 		        return ResponseEntity.ok(response);
@@ -41,6 +44,7 @@ public class CountryServiceImpl implements ICountryService{
 	}
 
 	@Override
+	@Transactional(readOnly = true)
 	public ResponseEntity<CountryResponseRest> searchById(Long id) {
 		 CountryResponseRest response = new CountryResponseRest();
 		    try {
@@ -60,6 +64,7 @@ public class CountryServiceImpl implements ICountryService{
 	}
 
 	@Override
+	@Transactional
 	public ResponseEntity<CountryResponseRest> save(Country country) {
 		  CountryResponseRest response = new CountryResponseRest();
 		    try {
@@ -85,6 +90,7 @@ public class CountryServiceImpl implements ICountryService{
 	}
 
 	@Override
+	@Transactional
 	public ResponseEntity<CountryResponseRest> update(Country country, Long id) {
 		 CountryResponseRest response = new CountryResponseRest();
 		    try {
@@ -108,6 +114,7 @@ public class CountryServiceImpl implements ICountryService{
 	}
 
 	@Override
+	@Transactional
 	public ResponseEntity<CountryResponseRest> deleteById(Long id) {
 		 CountryResponseRest response = new CountryResponseRest();
 		    try {
@@ -125,43 +132,42 @@ public class CountryServiceImpl implements ICountryService{
 		        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
 		    }
 	}
-
+	
 	@Override
 	public ResponseEntity<CountryResponseRest> loadCountriesFromApi() {
-		CountryResponseRest response = new CountryResponseRest();
+	    CountryResponseRest response = new CountryResponseRest();
 	    try {
-	        // URL de la API
+	     
 	        String apiUrl = "https://restcountries.com/v3/all";
 
-	        // Consumir la API
+	        //comsumo api
 	        ResponseEntity<Object[]> apiResponse = restTemplate.getForEntity(apiUrl, Object[].class);
 	        Object[] countriesFromApi = apiResponse.getBody();
 
-	        // Verificar si hay datos
+	        // debo verificar la existencia de paises
 	        if (countriesFromApi != null) {
-	            // Recorrer y mapear los datos
 	            List<Country> countries = Arrays.stream(countriesFromApi)
 	                    .map(countryObject -> {
 	                        Map<?, ?> countryMap = (Map<?, ?>) countryObject;
 
-	                        // Obtener el nombre
-	                        Map<?, ?> nameMap = (Map<?, ?>) countryMap.get("name");
-	                        String name = nameMap.get("common").toString();
+	                        String name = ((Map<?, ?>) countryMap.get("name")).get("common").toString();
+	                        String flagUrl = ((Map<?, ?>) countryMap.get("flags")).get("png").toString();
 
-	                        // Obtener el URL de la bandera (primer elemento del array)
-	                        List<?> flagsList = (List<?>) countryMap.get("flags");
-	                        String flagUrl = flagsList.get(0).toString();
+	                        // verifico si existe el pais
+	                        Optional<Country> existingCountry = countryRepository.findByName(name);
+	                        if (existingCountry.isPresent()) {
+	                            return null; // bloqueo el duplicado
+	                        }
 
-	                        // Crear el objeto Country
 	                        Country country = new Country();
 	                        country.setName(name);
 	                        country.setFlagUrl(flagUrl);
-
 	                        return country;
 	                    })
+	                    .filter(Objects::nonNull) 
 	                    .collect(Collectors.toList());
 
-	            // Guardar en la base de datos
+	            // guardo paises de la api en la bd
 	            countryRepository.saveAll(countries);
 
 	            response.setMetadata("Carga exitosa", "00", "Países cargados desde la API");
@@ -171,9 +177,8 @@ public class CountryServiceImpl implements ICountryService{
 	            return ResponseEntity.noContent().build();
 	        }
 	    } catch (Exception e) {
-	        response.setMetadata("Error en la carga", "-1", "Error al consumir la API: " + e.getMessage());
+	        response.setMetadata("Error en la carga", "-1", "Error al consumir la API");
 	        return ResponseEntity.status(500).body(response);
 	    }
 	}
-
 }
