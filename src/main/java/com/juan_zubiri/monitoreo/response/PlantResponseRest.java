@@ -8,5 +8,11 @@ import lombok.Setter;
 public class PlantResponseRest extends ResponseRest{
 	
 	private PlantResponse plantResponse = new PlantResponse();
+	
+	 private String message; // Para mensajes adicionales
+
+	    public void setMessage(String message) {
+	        this.message = message;
+	    }
 
 }

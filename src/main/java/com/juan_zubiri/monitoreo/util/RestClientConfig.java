@@ -1,6 +1,5 @@
 package com.juan_zubiri.monitoreo.util;
 
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestTemplate;
