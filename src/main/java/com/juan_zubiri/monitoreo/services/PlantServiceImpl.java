@@ -10,8 +10,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.juan_zubiri.monitoreo.dao.CountryRepository;
 import com.juan_zubiri.monitoreo.dao.PlantRepository;
+import com.juan_zubiri.monitoreo.dao.UserRepository;
+import com.juan_zubiri.monitoreo.dto.RegisterPlantDTO;
+import com.juan_zubiri.monitoreo.model.Country;
 import com.juan_zubiri.monitoreo.model.Plant;
+import com.juan_zubiri.monitoreo.model.User;
 import com.juan_zubiri.monitoreo.response.PlantResponseRest;
 
 
@@ -20,6 +25,12 @@ public class PlantServiceImpl implements IPlantService{
 	
 	@Autowired
 	private PlantRepository plantRepository;
+	
+	@Autowired
+	private CountryRepository countryRepository;
+	
+	@Autowired
+	private UserRepository userRepository;
 
 	@Override
 	@Transactional(readOnly = true)
@@ -59,36 +70,9 @@ public class PlantServiceImpl implements IPlantService{
 		    }
 	}
 
-	@Override
-	@Transactional
-	public ResponseEntity<PlantResponseRest> save(Plant plant) {
-		
-		PlantResponseRest response = new PlantResponseRest();
-		try {
-	        // verifico si plant existe
-	        Optional<Plant> existingPlant = plantRepository.findByName(plant.getName());
-	        if (existingPlant.isPresent()) {
-	            response.setMetadata("Error", "409", "La Planta ya existe en la base de datos");
-	            return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
-	        }
-
-	        // guardo la Planta
-	        Plant savedCountry = plantRepository.save(plant);
-
-	        // respuesta
-	        response.setMetadata("Éxito", "200", "Planta guardado correctamente");
-	        response.getPlantResponse().setPlant(Collections.singletonList(savedCountry));
-	        return ResponseEntity.ok(response);
-
-	    } catch (Exception e) {
-	        response.setMetadata("Error", "500", "Error al guardar la Planta: " + e.getMessage());
-	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
-	    }
-		 
-	}
+	
 
 	@Override
-	@Transactional
 	public ResponseEntity<PlantResponseRest> update(Plant plant, Long id) {
 		
 		PlantResponseRest response = new PlantResponseRest();
@@ -115,7 +99,6 @@ public class PlantServiceImpl implements IPlantService{
 	}
 
 	@Override
-	@Transactional
 	public ResponseEntity<PlantResponseRest> deleteById(Long id) {
 		
 		PlantResponseRest response = new PlantResponseRest();
@@ -136,6 +119,68 @@ public class PlantServiceImpl implements IPlantService{
 		    }
 		
 	}
+	
+	@Override
+	public ResponseEntity<PlantResponseRest> save(Plant plant) {
+	    PlantResponseRest response = new PlantResponseRest();
+	    try {
+	        // Verifico si el país existe
+	        if (plant.getCountry() == null || plant.getCountry().getId() == null) {
+	            response.setMetadata("Error", "400", "Country no proporcionado en la solicitud");
+	            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+	        }
+
+	        Optional<Country> countryOpt = countryRepository.findById(plant.getCountry().getId());
+	        if (!countryOpt.isPresent()) {
+	            response.setMetadata("Error", "404", "Country no encontrado");
+	            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+	        }
+
+	        // Verificación de que countryOpt.get() no es null
+	        System.out.println("Country encontrado: " + countryOpt.get().getName());
+	        
+	        // Asignar el país a la planta
+	        plant.setCountry(countryOpt.get());
+	        System.out.println("Country asignado a planta: " + plant.getCountry().getName());
+
+	        // Verifico si el usuario existe
+	        if (plant.getUser() == null || plant.getUser().getId() == null) {
+	            response.setMetadata("Error", "400", "Usuario no proporcionado en la solicitud");
+	            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+	        }
+
+	        Optional<User> userOpt = userRepository.findById(plant.getUser().getId());
+	        if (!userOpt.isPresent()) {
+	            response.setMetadata("Error", "404", "Usuario no encontrado");
+	            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+	        }
+
+	        // Asignar el usuario a la planta
+	        plant.setUser(userOpt.get());
+	        System.out.println("Usuario asignado a planta: " + plant.getUser().getName());
+
+	        // Guardar la planta
+	        Plant savedPlant = plantRepository.save(plant);
+
+	        // Respuesta exitosa
+	        response.setMetadata("Éxito", "200", "Planta guardada correctamente");
+	        response.getPlantResponse().setPlant(Collections.singletonList(savedPlant));
+	        return ResponseEntity.ok(response);
+
+	    } catch (Exception e) {
+	        response.setMetadata("Error", "500", "Error al guardar la Planta: " + e.getMessage());
+	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+	    }
+	}
+
+
+	@Override
+	public ResponseEntity<PlantResponseRest> registerPlant(RegisterPlantDTO registerPlantDTO) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+
 	
 
 }
