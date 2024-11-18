@@ -17,7 +17,8 @@ public class SecurityConfig {
 	        .authorizeHttpRequests(auth -> auth
 	            .requestMatchers("/api/countries", "/api/countries/{id}", 
 	            		"/api/plant", "/api/plant/{id}", 
-	            		"/api/readings", "/api/readings/{id}").permitAll()  
+	            		"/api/readings", "/api/readings/{id}", 
+	            		"/api/alerts", "/api/alerts/{id}", "/api/alerts/total", "/api/alerts/count/{type}").permitAll()  
 	            .requestMatchers("/api/register").permitAll()  
 	            .requestMatchers("/api/user/**").authenticated()  
 	            .anyRequest().authenticated() 
