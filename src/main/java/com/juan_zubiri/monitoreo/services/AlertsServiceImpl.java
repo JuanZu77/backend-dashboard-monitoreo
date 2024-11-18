@@ -67,7 +67,7 @@ public class AlertsServiceImpl implements IAlertsService{
 		AlertsResponseRest response = new AlertsResponseRest();
 		
 		try {
-        // guardo la lectura
+        // guardo la alerta
         Alerts savedAlert = alertRepository.save(alerts);
 
         // respuesta
