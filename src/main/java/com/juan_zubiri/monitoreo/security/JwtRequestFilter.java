@@ -32,11 +32,11 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         String username = null;
         String token = null;
 
-        // Verificamos que el encabezado Authorization exista y contenga un token
+        // verifico que el encabezado Authorization exista y tenga un token
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
-            token = authorizationHeader.substring(7); // debe irse el "Bearer " del encabezado
+            token = authorizationHeader.substring(7); // debe irse el "Bearer " del encabezado....
             try {
-                username = jwtUtil.extractUsername(token); // extraer el token
+                username = jwtUtil.extractUsername(token); // debe extraerse el token
             } catch (Exception e) {
                 logger.error("Error al extraer el nombre de usuario del token", e);
             }
@@ -57,7 +57,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             }
         }
 
-        // Continuamos con la cadena de filtros
+        // continua con la cadena de filtros..
         chain.doFilter(request, response);
     }
 }

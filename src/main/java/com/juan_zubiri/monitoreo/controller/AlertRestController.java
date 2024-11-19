@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.juan_zubiri.monitoreo.model.Alerts;
+import com.juan_zubiri.monitoreo.dto.AlertsDTO;
 import com.juan_zubiri.monitoreo.model.Alerts.AlertType;
 import com.juan_zubiri.monitoreo.response.AlertsResponseRest;
 import com.juan_zubiri.monitoreo.services.IAlertsService;
@@ -52,17 +52,15 @@ public class AlertRestController {
 	 
 	 
 	 @PostMapping("/alerts")
-		public ResponseEntity<AlertsResponseRest> save(@RequestBody Alerts alerts){
-			
-			 ResponseEntity<AlertsResponseRest> response = alertService.save(alerts);
-			 return response;
-		} 
+	    public ResponseEntity<AlertsResponseRest> save(@RequestBody AlertsDTO alertDTO) {
+	        return alertService.save(alertDTO);
+	    }
 	 
 	 
 	 @PutMapping("/alerts/{id}")
-	public ResponseEntity<AlertsResponseRest> update(@RequestBody Alerts alerts, @PathVariable Long id){
+	public ResponseEntity<AlertsResponseRest> update(@RequestBody AlertsDTO alertDTO, @PathVariable Long id){
 		
-		 ResponseEntity<AlertsResponseRest> response = alertService.update(alerts, id);
+		 ResponseEntity<AlertsResponseRest> response = alertService.update(alertDTO, id);
 		 return response;
 	}
 	 

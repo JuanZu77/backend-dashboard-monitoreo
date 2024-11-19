@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.juan_zubiri.monitoreo.model.Sensors;
+import com.juan_zubiri.monitoreo.dto.SensorsDTO;
 import com.juan_zubiri.monitoreo.model.Sensors.SensorType;
 import com.juan_zubiri.monitoreo.response.SensorsResponseRest;
 import com.juan_zubiri.monitoreo.services.ISensorsService;
@@ -47,17 +47,17 @@ public class SensorRestController {
 	 
 	 
 	 @PostMapping("/sensors")
-		public ResponseEntity<SensorsResponseRest> save(@RequestBody Sensors sensors){
+		public ResponseEntity<SensorsResponseRest> save(@RequestBody SensorsDTO sensorsDTO){
 			
-			 ResponseEntity<SensorsResponseRest> response = sensorsService.save(sensors);
+			 ResponseEntity<SensorsResponseRest> response = sensorsService.save(sensorsDTO);
 			 return response;
 		} 
 	 
 	 
 	 @PutMapping("/sensors/{id}")
-	public ResponseEntity<SensorsResponseRest> update(@RequestBody Sensors sensors, @PathVariable Long id){
+	public ResponseEntity<SensorsResponseRest> update(@RequestBody SensorsDTO sensorsDTO, @PathVariable Long id){
 		
-		 ResponseEntity<SensorsResponseRest> response = sensorsService.update(sensors, id);
+		 ResponseEntity<SensorsResponseRest> response = sensorsService.update(sensorsDTO, id);
 		 return response;
 	}
 	 

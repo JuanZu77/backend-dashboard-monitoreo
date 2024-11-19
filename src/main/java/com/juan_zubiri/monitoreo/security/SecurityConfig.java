@@ -27,13 +27,13 @@ public class SecurityConfig {
                                  "/api/readings", "/api/readings/{id}", 
                                  "/api/alerts", "/api/alerts/{id}", "/api/alerts/total", "/api/alerts/count/{alertType}",
                                  "/api/sensors", "/api/sensors/{id}", "/api/sensors/count/{sensorType}")
-                .authenticated()  // Estas rutas deben ser públicas
+                .authenticated()  
                 .requestMatchers("/api/users").authenticated()
                 .requestMatchers("/api/register/**", "/api/login/**").permitAll()
                 .anyRequest().authenticated()
             );
 
-        // Asegúrate de que el filtro JWT solo se aplique a las rutas protegidas
+        //  el filtro JWT solo debo aplicarlo a las rutas protegidas
         http.addFilterBefore(jwtRequestFilter, (Class<? extends Filter>) UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

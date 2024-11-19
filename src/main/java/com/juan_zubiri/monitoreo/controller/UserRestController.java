@@ -1,6 +1,7 @@
 package com.juan_zubiri.monitoreo.controller;
 
 import com.juan_zubiri.monitoreo.dto.RegisterUserDTO;
+import com.juan_zubiri.monitoreo.dto.UserDTO;
 import com.juan_zubiri.monitoreo.response.UserResponseRest;
 import com.juan_zubiri.monitoreo.services.IUserService;
 
@@ -25,8 +26,29 @@ public class UserRestController {
 		 ResponseEntity<UserResponseRest> response = userService.search();
 		 return response;
 	}
+    
+    @GetMapping("/users/{id}")
+	public ResponseEntity<UserResponseRest> searchById(@PathVariable Long id){
+		
+		 ResponseEntity<UserResponseRest> response = userService.searchById(id);
+		 return response;
+	}
+    
+    @DeleteMapping("/users/{id}")
+	public ResponseEntity<UserResponseRest> deleteById(@PathVariable Long id){
+		
+		 ResponseEntity<UserResponseRest> response = userService.deleteById(id);
+		 return response;
+	}
 
-    // Endpoint para registrar un usuario
+    @PutMapping("/users/{id}")
+	public ResponseEntity<UserResponseRest> update(@RequestBody UserDTO userDTO, @PathVariable Long id){
+		
+		 ResponseEntity<UserResponseRest> response = userService.update(userDTO,id);
+		 return response;
+	}
+
+
     @PostMapping("/register")
     public ResponseEntity<UserResponseRest> registerUser(
             @Valid @RequestBody RegisterUserDTO registerUserDTO,
@@ -35,7 +57,7 @@ public class UserRestController {
         return userService.registerUser(registerUserDTO, ipAddress);
     }
 
-    // Endpoint para login
+
     @PostMapping("/login")
     public ResponseEntity<UserResponseRest> login(@RequestParam String email, @RequestParam String password) {
         return userService.login(email, password);
