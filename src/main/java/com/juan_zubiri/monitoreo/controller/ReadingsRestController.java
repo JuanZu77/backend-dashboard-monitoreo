@@ -8,6 +8,7 @@ import com.juan_zubiri.monitoreo.dto.ReadingsDTO;
 import com.juan_zubiri.monitoreo.response.ReadingsResponseRest;
 import com.juan_zubiri.monitoreo.services.IReadingsService;
 
+@CrossOrigin(origins = {"http://localhost:4200"})
 @RestController
 @RequestMapping("/api")
 public class ReadingsRestController {
@@ -28,6 +29,12 @@ public class ReadingsRestController {
         ResponseEntity<ReadingsResponseRest> response = readingsService.searchById(id);
         return response;
     }
+    
+    @GetMapping("/readings/total")
+	 public ResponseEntity<Integer> getTotalREadings() {
+	     int totalAlerts = readingsService.countTotalReadings();
+	     return ResponseEntity.ok(totalAlerts);
+	 }
 
     // Guardar una nueva lectura (usando DTO)
     @PostMapping("/readings")

@@ -15,7 +15,6 @@ import com.juan_zubiri.monitoreo.dao.AlertRepository;
 import com.juan_zubiri.monitoreo.dao.PlantRepository;
 import com.juan_zubiri.monitoreo.dao.ReadingsRepository;
 import com.juan_zubiri.monitoreo.dao.SensorsRepository;
-import com.juan_zubiri.monitoreo.dto.PlantDTO;
 import com.juan_zubiri.monitoreo.dto.ReadingsDTO;
 import com.juan_zubiri.monitoreo.model.Alerts;
 import com.juan_zubiri.monitoreo.model.Plant;
@@ -38,53 +37,110 @@ public class ReadingsServiceImpl implements IReadingsService {
     @Autowired
     private SensorsRepository sensorsRepository;
 
+//    @Override
+//    public ResponseEntity<ReadingsResponseRest> save(ReadingsDTO readingsDTO) {
+//        ReadingsResponseRest response = new ReadingsResponseRest();
+//
+//        try {
+//
+//            Optional<Plant> plantOpt = plantRepository.findById(readingsDTO.getPlantId());
+//            if (!plantOpt.isPresent()) {
+//                response.setMetadata("Error", "404", "Planta no encontrada");
+//                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+//            }
+//
+//         
+//            Readings readings = new Readings();
+//            Plant plant = plantOpt.get();
+//            readings.setPlant(plant);
+//            readings.setReadings_number(readingsDTO.getReadingsNumber());
+//
+//            // necesito que si timestamp no está presente en el DTO, asignarle la fecha y hora actuales del serviodor
+//            if (readingsDTO.getTimestamp() == null) {
+//                readings.setTimestamp(LocalDateTime.now());  
+//            } else {
+//                readings.setTimestamp(readingsDTO.getTimestamp());  
+//            }
+//
+//            // guardo los sensores si existen
+//            if (readingsDTO.getSensorIds() != null && !readingsDTO.getSensorIds().isEmpty()) {
+//                List<Sensors> sensors = sensorsRepository.findAllById(readingsDTO.getSensorIds());
+//                readings.setSensors(sensors);
+//            }
+//
+//            // aqui guardo las alertas 
+//            if (readingsDTO.getAlertIds() != null && !readingsDTO.getAlertIds().isEmpty()) {
+//                List<Alerts> alerts = alertsRepository.findAllById(readingsDTO.getAlertIds());
+//                readings.setAlerts(alerts);
+//            }
+//
+//            
+//            Readings savedReading = readingsRepository.save(readings);
+//
+//            //  DTO para la planta 
+//            PlantDTO plantDTO = new PlantDTO();
+//            plantDTO.setId(plant.getId());
+//
+//            response.setMetadata("Éxito", "200", "Reading guardado correctamente");
+//
+//            // creo DTO para Readings 
+//            ReadingsDTO responseReading = new ReadingsDTO();
+//            responseReading.setId(savedReading.getId());
+//            responseReading.setPlantId(savedReading.getPlant().getId());
+//            responseReading.setReadingsNumber(savedReading.getReadings_number());
+//            responseReading.setTimestamp(savedReading.getTimestamp());
+//
+//            response.getReadingsResponse().setReadings(Collections.singletonList(responseReading));
+//            return ResponseEntity.ok(response);
+//
+//        } catch (Exception e) {
+//            response.setMetadata("Error", "500", "Error al guardar el Reading: " + e.getMessage());
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+//        }
+//    }
+    
     @Override
     public ResponseEntity<ReadingsResponseRest> save(ReadingsDTO readingsDTO) {
         ReadingsResponseRest response = new ReadingsResponseRest();
 
         try {
-
+            // Verifico que la planta exista
             Optional<Plant> plantOpt = plantRepository.findById(readingsDTO.getPlantId());
             if (!plantOpt.isPresent()) {
                 response.setMetadata("Error", "404", "Planta no encontrada");
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
             }
 
-         
             Readings readings = new Readings();
             Plant plant = plantOpt.get();
             readings.setPlant(plant);
-            readings.setReadings_number(readingsDTO.getReadingsNumber());
 
-            // necesito que si timestamp no está presente en el DTO, asignarle la fecha y hora actuales del serviodor
+            // cargo el número de lectura de forma incremental
+            Integer maxReadingNumber = readingsRepository.findMaxReadingsNumberByPlant(plant.getId());
+            readings.setReadings_number((maxReadingNumber != null ? maxReadingNumber : 0) + 1);
+
+            // timestamp si no está presente
             if (readingsDTO.getTimestamp() == null) {
-                readings.setTimestamp(LocalDateTime.now());  
+                readings.setTimestamp(LocalDateTime.now());
             } else {
-                readings.setTimestamp(readingsDTO.getTimestamp());  
+                readings.setTimestamp(readingsDTO.getTimestamp());
             }
 
-            // guardo los sensores si existen
+            // sensores si existen
             if (readingsDTO.getSensorIds() != null && !readingsDTO.getSensorIds().isEmpty()) {
                 List<Sensors> sensors = sensorsRepository.findAllById(readingsDTO.getSensorIds());
                 readings.setSensors(sensors);
             }
 
-            // aqui guardo las alertas 
+            // alertas si existen
             if (readingsDTO.getAlertIds() != null && !readingsDTO.getAlertIds().isEmpty()) {
                 List<Alerts> alerts = alertsRepository.findAllById(readingsDTO.getAlertIds());
                 readings.setAlerts(alerts);
             }
 
-            
             Readings savedReading = readingsRepository.save(readings);
 
-            //  DTO para la planta 
-            PlantDTO plantDTO = new PlantDTO();
-            plantDTO.setId(plant.getId());
-
-            response.setMetadata("Éxito", "200", "Reading guardado correctamente");
-
-            // creo DTO para Readings 
+            // el DTO de respuesta
             ReadingsDTO responseReading = new ReadingsDTO();
             responseReading.setId(savedReading.getId());
             responseReading.setPlantId(savedReading.getPlant().getId());
@@ -92,6 +148,8 @@ public class ReadingsServiceImpl implements IReadingsService {
             responseReading.setTimestamp(savedReading.getTimestamp());
 
             response.getReadingsResponse().setReadings(Collections.singletonList(responseReading));
+            response.setMetadata("Éxito", "200", "Reading guardado correctamente");
+
             return ResponseEntity.ok(response);
 
         } catch (Exception e) {
@@ -99,6 +157,7 @@ public class ReadingsServiceImpl implements IReadingsService {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
+
 
 
 
@@ -262,6 +321,10 @@ public class ReadingsServiceImpl implements IReadingsService {
 
 
 
+	@Override
+	public int countTotalReadings() {
+		 return (int) readingsRepository.count(); 
+	}
 
 
 }

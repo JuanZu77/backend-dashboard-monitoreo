@@ -8,6 +8,7 @@ import com.juan_zubiri.monitoreo.dto.PlantDTO;
 import com.juan_zubiri.monitoreo.response.PlantResponseRest;
 import com.juan_zubiri.monitoreo.services.IPlantService;
 
+@CrossOrigin(origins = {"http://localhost:4200"})
 @RestController
 @RequestMapping("/api")
 public class PlantRestController {
