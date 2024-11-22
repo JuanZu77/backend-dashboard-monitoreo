@@ -14,4 +14,6 @@ public interface IReadingsService {
     public ResponseEntity<ReadingsResponseRest> update(ReadingsDTO readingsDTO, Long id);  // Usar DTO
 
     public ResponseEntity<ReadingsResponseRest> deleteById(Long id);
+    
+    int countTotalReadings();
 }
