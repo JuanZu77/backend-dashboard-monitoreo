@@ -3,45 +3,55 @@ package com.juan_zubiri.monitoreo.security;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-
-import jakarta.servlet.Filter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 @Configuration
+@EnableWebSecurity
 public class SecurityConfig {
-	
+
     @Autowired
     private JwtRequestFilter jwtRequestFilter;
 
-    @Bean
+    @SuppressWarnings("deprecation")
+	@Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+            // confif global cors
+            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .csrf(csrf -> csrf.disable())
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/countries", "/api/countries/{id}", 
-                                 "/api/plant", "/api/plant/{id}", 
-                                 "/api/readings", "/api/readings/{id}", 
+            .authorizeRequests(authz -> authz
+                .requestMatchers(HttpMethod.GET, "/api/countries", "/api/countries/{id}",
+                                 "/api/plant", "/api/plant/{id}",
+                                 "/api/readings", "/api/readings/{id}",
                                  "/api/alerts", "/api/alerts/{id}", "/api/alerts/total", "/api/alerts/count/{alertType}",
                                  "/api/sensors", "/api/sensors/{id}", "/api/sensors/count/{sensorType}")
-                .authenticated()  
+                .authenticated()
                 .requestMatchers("/api/users").authenticated()
                 .requestMatchers("/api/register/**", "/api/login/**").permitAll()
                 .anyRequest().authenticated()
-            );
-
-        //  el filtro JWT solo debo aplicarlo a las rutas protegidas
-        http.addFilterBefore(jwtRequestFilter, (Class<? extends Filter>) UsernamePasswordAuthenticationFilter.class);
+            )
+            .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class); //filtro JWT
 
         return http.build();
     }
 
     @Bean
-    PasswordEncoder customPasswordEncoder() {
-        return new BCryptPasswordEncoder();  
+    UrlBasedCorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.addAllowedOrigin("http://localhost:4200"); // frontend
+        configuration.addAllowedMethod("*"); 
+        configuration.addAllowedHeader("*"); 
+        configuration.setAllowCredentials(true); 
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 }
 
