@@ -1,25 +1,26 @@
 package com.juan_zubiri.monitoreo.services;
 
-import java.util.Arrays;
+
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.juan_zubiri.monitoreo.dao.CountryRepository;
+import com.juan_zubiri.monitoreo.dto.CountryDTO;
 import com.juan_zubiri.monitoreo.model.Country;
+import com.juan_zubiri.monitoreo.model.CountryApi;
 import com.juan_zubiri.monitoreo.response.CountryResponseRest;
+
 
 @Service
 public class CountryServiceImpl implements ICountryService{
@@ -27,93 +28,137 @@ public class CountryServiceImpl implements ICountryService{
 	@Autowired
 	private CountryRepository countryRepository;
 	
-	@Autowired
-    private RestTemplate restTemplate;
+	//@Autowired
+    //private RestTemplate restTemplate; se inyecta solo con la importacion import org.springframework.web.client.RestTemplate;
 
 	@Override
 	@Transactional(readOnly = true)
 	public ResponseEntity<CountryResponseRest> search() {
-		 CountryResponseRest response = new CountryResponseRest();
-		    try {
-		    	List<Country> countries = countryRepository.findAll(); 
-		        response.getCountryResponse().setCountry(countries);
-		        response.setMetadata("Respuesta exitosa", "00", "Consulta exitosa");
-		        return ResponseEntity.ok(response);
-		    } catch (Exception e) {
-		        response.setMetadata("Error al consultar", "-1", "Error en el servidor");
-		        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
-		    }
+	    CountryResponseRest response = new CountryResponseRest();
+	    try {
+	        List<Country> countries = countryRepository.findAll();
+	        
+	        // Country a CountryDTO
+	        List<CountryDTO> countryDTOs = countries.stream()
+	            .map(country -> {
+	                CountryDTO countryDTO = new CountryDTO();
+	                countryDTO.setName(country.getName());
+	                countryDTO.setFlagUrl(country.getFlagUrl());
+	                return countryDTO;
+	            })
+	            .collect(Collectors.toList());
+
+	        response.getCountryResponse().setCountry(countryDTOs);  
+	        response.setMetadata("Respuesta exitosa", "00", "Consulta exitosa");
+
+	        return ResponseEntity.ok(response);
+	    } catch (Exception e) {
+	        response.setMetadata("Error al consultar", "-1", "Error en el servidor");
+	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+	    }
 	}
+
 
 	@Override
 	@Transactional(readOnly = true)
 	public ResponseEntity<CountryResponseRest> searchById(Long id) {
-		 CountryResponseRest response = new CountryResponseRest();
-		    try {
-		        Optional<Country> country = countryRepository.findById(id);
-		        if (country.isPresent()) {
-		            response.getCountryResponse().setCountry(List.of(country.get()));
-		            response.setMetadata("Respuesta exitosa", "00", "Consulta exitosa");
-		            return ResponseEntity.ok(response);
-		        } else {
-		            response.setMetadata("Error al consultar", "-1", "País no encontrado");
-		            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-		        }
-		    } catch (Exception e) {
-		        response.setMetadata("Error al consultar", "-1", "Error en el servidor");
-		        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
-		    }
+	    CountryResponseRest response = new CountryResponseRest();
+	    try {
+	        Optional<Country> country = countryRepository.findById(id);
+	        if (country.isPresent()) {
+	            //  Country a CountryDTO
+	            CountryDTO countryDTO = new CountryDTO();
+	            countryDTO.setName(country.get().getName());
+	            countryDTO.setFlagUrl(country.get().getFlagUrl());
+
+	            response.getCountryResponse().setCountry(List.of(countryDTO));  
+	            response.setMetadata("Respuesta exitosa", "00", "Consulta exitosa");
+	            return ResponseEntity.ok(response);
+	        } else {
+	            response.setMetadata("Error al consultar", "-1", "País no encontrado");
+	            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+	        }
+	    } catch (Exception e) {
+	        response.setMetadata("Error al consultar", "-1", "Error en el servidor");
+	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+	    }
 	}
+
 
 	@Override
 	@Transactional
-	public ResponseEntity<CountryResponseRest> save(Country country) {
-		  CountryResponseRest response = new CountryResponseRest();
-		    try {
-		        // verifico si pais existe
-		        Optional<Country> existingCountry = countryRepository.findByName(country.getName());
-		        if (existingCountry.isPresent()) {
-		            response.setMetadata("Error", "409", "El país ya existe en la base de datos");
-		            return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
-		        }
+	public ResponseEntity<CountryResponseRest> save(CountryDTO countryDTO) {
+	    CountryResponseRest response = new CountryResponseRest();
+	    try {
+	        // debo verificar si existe el país
+	        Optional<Country> existingCountry = countryRepository.findByName(countryDTO.getName());
+	        if (existingCountry.isPresent()) {
+	            response.setMetadata("Error", "409", "El país ya existe en la base de datos");
+	            return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+	        }
 
-		        // guardo el pais
-		        Country savedCountry = countryRepository.save(country);
+	        // crear Country
+	        Country country = new Country();
+	        country.setName(countryDTO.getName());
+	        country.setFlagUrl(countryDTO.getFlagUrl());
 
-		        // respuesta
-		        response.setMetadata("Éxito", "200", "País guardado correctamente");
-		        response.getCountryResponse().setCountry(Collections.singletonList(savedCountry));
-		        return ResponseEntity.ok(response);
+	        // guardo el pais en la BD
+	        Country savedCountry = countryRepository.save(country);
 
-		    } catch (Exception e) {
-		        response.setMetadata("Error", "500", "Error al guardar el país: " + e.getMessage());
-		        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
-		    }
+	        // convierto Country a CountryDTO
+	        CountryDTO savedCountryDTO = new CountryDTO();
+	        savedCountryDTO.setName(savedCountry.getName());
+	        savedCountryDTO.setFlagUrl(savedCountry.getFlagUrl());
+
+	        response.setMetadata("Éxito", "200", "País guardado correctamente");
+	        response.getCountryResponse().setCountry(Collections.singletonList(savedCountryDTO));
+
+	        return ResponseEntity.ok(response);
+
+	    } catch (Exception e) {
+	        response.setMetadata("Error", "500", "Error al guardar el país: " + e.getMessage());
+	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+	    }
 	}
+
+
 
 	@Override
 	@Transactional
-	public ResponseEntity<CountryResponseRest> update(Country country, Long id) {
-		 CountryResponseRest response = new CountryResponseRest();
-		    try {
-		        Optional<Country> countryOptional = countryRepository.findById(id);
-		        if (countryOptional.isPresent()) {
-		            Country countryToUpdate = countryOptional.get();
-		            countryToUpdate.setName(country.getName()); 
-		           
-		            countryRepository.save(countryToUpdate);
-		            response.getCountryResponse().setCountry(List.of(countryToUpdate));
-		            response.setMetadata("Respuesta exitosa", "00", "País actualizado correctamente");
-		            return ResponseEntity.ok(response);
-		        } else {
-		            response.setMetadata("Error al actualizar", "-1", "País no encontrado");
-		            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-		        }
-		    } catch (Exception e) {
-		        response.setMetadata("Error al actualizar", "-1", "Error en el servidor");
-		        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
-		    }
+	public ResponseEntity<CountryResponseRest> update(CountryDTO countryDTO, Long id) {
+	    CountryResponseRest response = new CountryResponseRest();
+	    try {
+	        // busco el país por id
+	        Optional<Country> countryOptional = countryRepository.findById(id);
+	        if (countryOptional.isPresent()) {
+	            // llego al país y lo actualizo con los valores que actulice del DTO
+	            Country countryToUpdate = countryOptional.get();
+	            countryToUpdate.setName(countryDTO.getName());
+	            countryToUpdate.setFlagUrl(countryDTO.getFlagUrl());
+
+	            // guardo los cambios
+	            countryRepository.save(countryToUpdate);
+
+	            // convertir Country a CountryDTO
+	            CountryDTO updatedCountryDTO = new CountryDTO();
+	            updatedCountryDTO.setName(countryToUpdate.getName());
+	            updatedCountryDTO.setFlagUrl(countryToUpdate.getFlagUrl());
+
+	            response.getCountryResponse().setCountry(List.of(updatedCountryDTO));
+	            response.setMetadata("Respuesta exitosa", "00", "País actualizado correctamente");
+
+	            return ResponseEntity.ok(response);
+	        } else {
+	            response.setMetadata("Error al actualizar", "-1", "País no encontrado");
+	            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+	        }
+	    } catch (Exception e) {
+	        response.setMetadata("Error al actualizar", "-1", "Error en el servidor");
+	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+	    }
 	}
+
+
 
 	@Override
 	@Transactional
@@ -135,69 +180,78 @@ public class CountryServiceImpl implements ICountryService{
 		    }
 	}
 	
+	  
 	@Override
-	public ResponseEntity<CountryResponseRest> loadCountriesFromApi() {
+	@Transactional
+	public ResponseEntity<CountryResponseRest> loadCountriesFromApi(CountryDTO countryDTO) {
 	    CountryResponseRest response = new CountryResponseRest();
 	    try {
-	        String apiUrl = "https://restcountries.com/v3/all";
+	        System.out.println("Iniciando carga de países desde la API.");
 
-	        ResponseEntity<Object[]> apiResponse = restTemplate.getForEntity(apiUrl, Object[].class);
-	        Object[] countriesFromApi = apiResponse.getBody();
+	        String url = "https://restcountries.com/v3.1/all?fields=name,flags";
 
-	        if (countriesFromApi != null) {
-	            // debo obtener todos los nombres existentes en la bd
-	            Set<String> existingNames = new HashSet<>(countryRepository.findAllNames());
+	        //  llamada a la API
+	        RestTemplate restTemplate = new RestTemplate();
+	        System.out.println("Solicitud HTTP a la API...");
 
-	            // recorro la api
-	            List<Country> countries = Arrays.stream(countriesFromApi)
-	                .map(countryObject -> {
-	                    Map<?, ?> countryMap = (Map<?, ?>) countryObject;
+	        // con ResponseEntity debo manejar la respuesta de la API
+	        ResponseEntity<String> responseEntity = restTemplate.exchange(
+	            url, HttpMethod.GET, null, String.class
+	        );
 
-	                    // obtengo el nombre
-	                    Map<?, ?> nameMap = (Map<?, ?>) countryMap.get("name");
-	                    if (nameMap == null || nameMap.get("common") == null) {
-	                        return null; 
+	        System.out.println("Respuesta de la API: " + responseEntity.getBody());
+
+	        if (responseEntity.getStatusCode() == HttpStatus.OK) {
+	            // debo deserializr la respuesta JSON coon ObjectMapper
+	            ObjectMapper objectMapper = new ObjectMapper();
+	            List<CountryApi> countriesApi = objectMapper.readValue(responseEntity.getBody(),
+	                objectMapper.getTypeFactory().constructCollectionType(List.class, CountryApi.class)
+	            );
+
+	            System.out.println("Se han recibido " + countriesApi.size() + " países.");
+
+	            if (countriesApi != null && !countriesApi.isEmpty()) {
+	                // Si se pasa un nombre, buscamos el país específico
+	                if (countryDTO.getName() != null && !countryDTO.getName().isEmpty()) {
+	                    countriesApi = countriesApi.stream()
+	                        .filter(country -> country.getCommonName().equalsIgnoreCase(countryDTO.getName()))
+	                        .collect(Collectors.toList());
+	                }
+
+	                // Si no se encuentra ningún país con ese nombre
+	                if (countriesApi.isEmpty()) {
+	                    response.setMetadata("Advertencia", "404", "No se encontró el país solicitado.");
+	                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+	                }
+
+	                // se mapean los países de la API a Country
+	                for (CountryApi apiCountry : countriesApi) {
+	                    // debo verificar si los paises existen al correr la app
+	                    Optional<Country> existingCountry = countryRepository.findByName(apiCountry.getCommonName());
+
+	                    if (!existingCountry.isPresent()) {  // guaradmos los paises que no existen
+	                        Country countryEntity = new Country();
+	                        countryEntity.setName(apiCountry.getCommonName());
+	                        countryEntity.setFlagUrl(apiCountry.getFlags() != null ? apiCountry.getFlags().getPng() : "");
+
+	                        countryRepository.save(countryEntity);
+	                        
+	                    } else {
+	                        System.out.println("El país " + apiCountry.getCommonName() + " ya existe, omitiendo inserción.");
 	                    }
-	                    String name = nameMap.get("common").toString();
+	                }
 
-	                    // verificar si existen paises con el nombre cada vez que corra la app
-	                    if (existingNames.contains(name)) {
-	                        return null; // Salta duplicados
-	                    }
-
-	                    // debo obtener la URL de la bandera 
-	                    List<?> flagsList = (List<?>) countryMap.get("flags");
-	                    if (flagsList == null || flagsList.isEmpty()) {
-	                        return null; 
-	                    }
-	                    String flagUrl = flagsList.get(0).toString();
-
-	                    // creo las instancias de country
-	                    Country country = new Country();
-	                    country.setName(name);
-	                    country.setFlagUrl(flagUrl);
-
-	                    return country;
-	                })
-	                .filter(Objects::nonNull) // filtro los nulos si existen
-	                .collect(Collectors.toList());
-
-	            if (!countries.isEmpty()) {
-	                // guaardo los paises
-	                countryRepository.saveAll(countries);
+	                response.setMetadata("Éxito", "200", "País(es) obtenidos correctamente.");
+	                return ResponseEntity.ok(response);
 	            }
-
-	            response.setMetadata("Carga exitosa", "00", "Países cargados desde la API");
-	            return ResponseEntity.ok(response);
-	        } else {
-	            response.setMetadata("Error en la carga", "-1", "No se encontraron datos en la API");
-	            return ResponseEntity.noContent().build();
 	        }
 	    } catch (Exception e) {
-	        response.setMetadata("Error en la carga", "-1", "Error al consumir la API: " + e.getMessage());
-	        return ResponseEntity.status(500).body(response);
+	        System.out.println("Error al consumir la API: " + e.getMessage());
+	        response.setMetadata("Error", "500", "Error al consumir la API: " + e.getMessage());
 	    }
+	    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
 	}
+
 
 
 }
