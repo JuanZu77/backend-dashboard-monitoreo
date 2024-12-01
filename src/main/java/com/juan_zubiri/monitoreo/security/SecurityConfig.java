@@ -12,7 +12,6 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
@@ -20,11 +19,13 @@ public class SecurityConfig {
     @Autowired
     private JwtRequestFilter jwtRequestFilter;
 
+    @Autowired
+    private CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
+
     @SuppressWarnings("deprecation")
-	@Bean
+    @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            // confif global cors
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .csrf(csrf -> csrf.disable())
             .authorizeRequests(authz -> authz
@@ -38,7 +39,9 @@ public class SecurityConfig {
                 .requestMatchers("/api/register/**", "/api/login/**").permitAll()
                 .anyRequest().authenticated()
             )
-            .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class); //filtro JWT
+            .exceptionHandling(exception -> 
+                exception.authenticationEntryPoint(customAuthenticationEntryPoint)) // manejo  excepciones de autenticación
+            .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class); // Filtro JWT
 
         return http.build();
     }
@@ -48,7 +51,7 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(Arrays.asList(
                 "http://localhost:4200", 
-                "https://monitoreoapp-443123.rj.r.appspot.com" // tu dominio en producción
+                "https://monitoreoapp-443123.rj.r.appspot.com"
             ));
         configuration.addAllowedMethod("*"); 
         configuration.addAllowedHeader("*"); 
