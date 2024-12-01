@@ -7,6 +7,9 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 @Data
 @Entity
 @Table(name = "readings")
@@ -21,6 +24,7 @@ public class Readings implements Serializable {
 
     @ManyToOne
     @JoinColumn(name = "id_plant", nullable = false)
+    @JsonBackReference //lecturas pertenen a una planta
     private Plant plant;
 
     @Column(name = "readings_number", nullable = false)
@@ -30,8 +34,10 @@ public class Readings implements Serializable {
     private LocalDateTime timestamp;
 
     @OneToMany(mappedBy = "readings", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference //lecturas tien muchas alertas
     private List<Alerts> alerts;
 
     @OneToMany(mappedBy = "readings", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference //lecturas tienen muchas alertas
     private List<Sensors> sensors;
 }

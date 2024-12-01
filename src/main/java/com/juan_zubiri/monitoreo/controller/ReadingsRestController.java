@@ -8,7 +8,6 @@ import com.juan_zubiri.monitoreo.dto.ReadingsDTO;
 import com.juan_zubiri.monitoreo.response.ReadingsResponseRest;
 import com.juan_zubiri.monitoreo.services.IReadingsService;
 
-@CrossOrigin(origins = {"http://localhost:4200"})
 @RestController
 @RequestMapping("/api")
 public class ReadingsRestController {
