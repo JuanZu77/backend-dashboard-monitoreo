@@ -3,23 +3,26 @@ package com.juan_zubiri.monitoreo.services;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
-
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.juan_zubiri.monitoreo.dao.CountryRepository;
 import com.juan_zubiri.monitoreo.dto.CountryDTO;
 import com.juan_zubiri.monitoreo.model.Country;
-import com.juan_zubiri.monitoreo.model.CountryApi;
 import com.juan_zubiri.monitoreo.response.CountryResponseRest;
+import com.juan_zubiri.monitoreo.security.CustomAuthenticationEntryPoint;
 
 
 @Service
@@ -30,6 +33,8 @@ public class CountryServiceImpl implements ICountryService{
 	
 	//@Autowired
     //private RestTemplate restTemplate; se inyecta solo con la importacion import org.springframework.web.client.RestTemplate;
+	
+    private static final Logger logger = LoggerFactory.getLogger(CustomAuthenticationEntryPoint.class);
 
 	@Override
 	@Transactional(readOnly = true)
@@ -186,71 +191,65 @@ public class CountryServiceImpl implements ICountryService{
 	public ResponseEntity<CountryResponseRest> loadCountriesFromApi(CountryDTO countryDTO) {
 	    CountryResponseRest response = new CountryResponseRest();
 	    try {
-	        System.out.println("Iniciando carga de países desde la API.");
-
-	        String url = "https://restcountries.com/v3.1/all?fields=name,flags";
-
-	        //  llamada a la API
+	    	
+	        String apiUrl = "https://restcountries.com/v3.1/all?fields=name,flags";
+	        
+	         // llamada a la API
 	        RestTemplate restTemplate = new RestTemplate();
-	        System.out.println("Solicitud HTTP a la API...");
-
+	        
 	        // con ResponseEntity debo manejar la respuesta de la API
-	        ResponseEntity<String> responseEntity = restTemplate.exchange(
-	            url, HttpMethod.GET, null, String.class
-	        );
+	        ResponseEntity<String> apiResponse = restTemplate.getForEntity(apiUrl, String.class);
 
-	        System.out.println("Respuesta de la API: " + responseEntity.getBody());
-
-	        if (responseEntity.getStatusCode() == HttpStatus.OK) {
-	            // debo deserializr la respuesta JSON coon ObjectMapper
+	        if (apiResponse.getStatusCode() == HttpStatus.OK && apiResponse.getBody() != null) {
+	        	  // debo deserializr la respuesta JSON coon ObjectMapper
 	            ObjectMapper objectMapper = new ObjectMapper();
-	            List<CountryApi> countriesApi = objectMapper.readValue(responseEntity.getBody(),
-	                objectMapper.getTypeFactory().constructCollectionType(List.class, CountryApi.class)
-	            );
+	            List<Map<String, Object>> countriesApi = objectMapper.readValue(apiResponse.getBody(),
+	                new TypeReference<List<Map<String, Object>>>() {});
 
-	            System.out.println("Se han recibido " + countriesApi.size() + " países.");
+	            List<Country> newCountries = countriesApi.stream()
+	                .map(countryMap -> {
+	                    @SuppressWarnings("unchecked")
+	                    Map<String, Object> nameMap = (Map<String, Object>) countryMap.get("name");
+	                    String name = nameMap != null ? (String) nameMap.get("common") : null;
 
-	            if (countriesApi != null && !countriesApi.isEmpty()) {
-	                // Si se pasa un nombre, buscamos el país específico
-	                if (countryDTO.getName() != null && !countryDTO.getName().isEmpty()) {
-	                    countriesApi = countriesApi.stream()
-	                        .filter(country -> country.getCommonName().equalsIgnoreCase(countryDTO.getName()))
-	                        .collect(Collectors.toList());
-	                }
+	                    @SuppressWarnings("unchecked")
+	                    Map<String, Object> flagsMap = (Map<String, Object>) countryMap.get("flags");
+	                    String flagUrl = flagsMap != null ? (String) flagsMap.get("png") : null;
 
-	                // Si no se encuentra ningún país con ese nombre
-	                if (countriesApi.isEmpty()) {
-	                    response.setMetadata("Advertencia", "404", "No se encontró el país solicitado.");
-	                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-	                }
-
-	                // se mapean los países de la API a Country
-	                for (CountryApi apiCountry : countriesApi) {
-	                    // debo verificar si los paises existen al correr la app
-	                    Optional<Country> existingCountry = countryRepository.findByName(apiCountry.getCommonName());
-
-	                    if (!existingCountry.isPresent()) {  // guaradmos los paises que no existen
-	                        Country countryEntity = new Country();
-	                        countryEntity.setName(apiCountry.getCommonName());
-	                        countryEntity.setFlagUrl(apiCountry.getFlags() != null ? apiCountry.getFlags().getPng() : "");
-
-	                        countryRepository.save(countryEntity);
-	                        
-	                    } else {
-	                        System.out.println("El país " + apiCountry.getCommonName() + " ya existe, omitiendo inserción.");
+	                    if (name == null || flagUrl == null) {
+	                       logger.warn("Datos inválidos: name={}, flagUrl={}", name, flagUrl);
+	                        return null;
 	                    }
-	                }
 
-	                response.setMetadata("Éxito", "200", "País(es) obtenidos correctamente.");
-	                return ResponseEntity.ok(response);
+	                    if (!countryRepository.findByName(name).isPresent()) {
+	                        Country newCountry = new Country();
+	                        newCountry.setName(name);
+	                        newCountry.setFlagUrl(flagUrl);
+	                        return newCountry;
+	                    }
+	                    return null;
+	                })
+	                .filter(Objects::nonNull)
+	                .collect(Collectors.toList());
+
+	            if (!newCountries.isEmpty()) {
+	                countryRepository.saveAll(newCountries);
 	            }
+
+	            response.setMetadata("Éxito", "200", "País(es) procesados correctamente.");
+	            return ResponseEntity.ok(response);
+	        } else {
+	            response.setMetadata("Advertencia", "404", "No se encontraron datos en la API.");
+	            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
 	        }
 	    } catch (Exception e) {
-	        System.out.println("Error al consumir la API: " + e.getMessage());
+	        logger.error("Error al consumir la API: {}", e.getMessage(), e);
 	        response.setMetadata("Error", "500", "Error al consumir la API: " + e.getMessage());
+	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
 	    }
-	    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
 	}
+
+
 
 
 

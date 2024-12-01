@@ -12,11 +12,13 @@ public class RestClientConfig {
     RestTemplate restTemplate() {
         return new RestTemplate();
     }
-//    @Bean
-//    RestTemplate restTemplate() {
-//        RestTemplate restTemplate = new RestTemplate();
-//        // Agregar el conversor de Jackson
-//        restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
-//        return restTemplate;
-//    }
+
 }
+
+//@Bean
+//RestTemplate restTemplate() {
+//  RestTemplate restTemplate = new RestTemplate();
+//  // Agregar el conversor de Jackson
+//  restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
+//  return restTemplate;
+//}

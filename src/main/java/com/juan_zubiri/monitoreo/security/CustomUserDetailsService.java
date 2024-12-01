@@ -20,6 +20,11 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        // Verificar si hay usuarios en la base de datos
+        if (userRepository.count() == 0) {
+            throw new EmptyDatabaseException("No hay usuarios en la base de datos.");
+        }
+
         Optional<User> user = userRepository.findByEmail(username);
         if (user.isPresent()) {
             return new org.springframework.security.core.userdetails.User(
