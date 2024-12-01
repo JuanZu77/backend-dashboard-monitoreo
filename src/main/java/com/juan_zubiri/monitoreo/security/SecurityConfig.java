@@ -1,5 +1,7 @@
 package com.juan_zubiri.monitoreo.security;
 
+import java.util.Arrays;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -44,7 +46,10 @@ public class SecurityConfig {
     @Bean
     UrlBasedCorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.addAllowedOrigin("http://localhost:4200"); // frontend
+        configuration.setAllowedOrigins(Arrays.asList(
+                "http://localhost:4200", 
+                "https://monitoreoapp-443123.rj.r.appspot.com" // tu dominio en producción
+            ));
         configuration.addAllowedMethod("*"); 
         configuration.addAllowedHeader("*"); 
         configuration.setAllowCredentials(true); 

@@ -4,6 +4,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
+import com.juan_zubiri.monitoreo.dto.CountryDTO;
+
 @Component
 public class CountryInitializer implements CommandLineRunner {
 
@@ -12,7 +14,9 @@ public class CountryInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        countryService.loadCountriesFromApi();
+
+        CountryDTO countryDTO = new CountryDTO();
+     
+        countryService.loadCountriesFromApi(countryDTO);
     }
 }
-

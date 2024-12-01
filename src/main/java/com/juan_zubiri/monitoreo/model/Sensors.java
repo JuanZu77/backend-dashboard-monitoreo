@@ -5,6 +5,8 @@ import lombok.Data;
 
 import java.io.Serializable;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 @Data
 @Entity
 @Table(name = "sensors")
@@ -19,6 +21,7 @@ public class Sensors implements Serializable {
 
     @ManyToOne
     @JoinColumn(name = "id_readings", nullable = false)
+    @JsonBackReference // perteneces a una lectura
     private Readings readings;
 
     @Enumerated(EnumType.STRING)

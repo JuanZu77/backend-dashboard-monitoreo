@@ -3,7 +3,6 @@ package com.juan_zubiri.monitoreo.model;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.io.Serializable;
-import java.util.List;
 
 @Data
 @Entity
@@ -23,8 +22,7 @@ public class Country implements Serializable {
     @Column(name = "flag_url", nullable = false)
     private String flagUrl;
 
-    @OneToMany(mappedBy = "country", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Plant> plants;
+
 }
 
 // mappedBy: la relacion viene de plant
