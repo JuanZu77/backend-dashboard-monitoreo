@@ -63,5 +63,16 @@ public class JwtUtil {
                 .parseClaimsJws(token)
                 .getBody();
     }
+    
+    // token para resetar password
+    public String generatePasswordResetToken(User user) {
+        return Jwts.builder()
+                .setSubject(user.getEmail()) // correo del usuario como sujeto
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60)) // 1 hora de validez
+                .signWith(SECRET_KEY, SignatureAlgorithm.HS256)
+                .compact();
+    }
+
 }
 

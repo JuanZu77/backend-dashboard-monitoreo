@@ -1,5 +1,12 @@
-{"properties": [{
-  "name": "external.api.url",
-  "type": "java.lang.String",
-  "description": "A description for 'external.api.url'"
-}]}
+{"properties": [
+  {
+    "name": "external.api.url",
+    "type": "java.lang.String",
+    "description": "A description for 'external.api.url'"
+  },
+  {
+    "name": "emailjs.userId",
+    "type": "java.lang.String",
+    "description": "A description for 'emailjs.userId'"
+  }
+]}
