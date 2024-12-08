@@ -91,7 +91,6 @@ public class CountryServiceImpl implements ICountryService{
 
 
 	@Override
-	@Transactional
 	public ResponseEntity<CountryResponseRest> save(CountryDTO countryDTO) {
 	    CountryResponseRest response = new CountryResponseRest();
 	    try {
@@ -129,7 +128,6 @@ public class CountryServiceImpl implements ICountryService{
 
 
 	@Override
-	@Transactional
 	public ResponseEntity<CountryResponseRest> update(CountryDTO countryDTO, Long id) {
 	    CountryResponseRest response = new CountryResponseRest();
 	    try {
@@ -166,7 +164,6 @@ public class CountryServiceImpl implements ICountryService{
 
 
 	@Override
-	@Transactional
 	public ResponseEntity<CountryResponseRest> deleteById(Long id) {
 		 CountryResponseRest response = new CountryResponseRest();
 		    try {
@@ -187,7 +184,6 @@ public class CountryServiceImpl implements ICountryService{
 	
 	  
 	@Override
-	@Transactional
 	public ResponseEntity<CountryResponseRest> loadCountriesFromApi(CountryDTO countryDTO) {
 	    CountryResponseRest response = new CountryResponseRest();
 	    try {
