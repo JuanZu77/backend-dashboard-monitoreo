@@ -76,4 +76,9 @@ public class UserRestController {
     public ResponseEntity<UserResponseRest> login(@RequestParam String email, @RequestParam String password) {
         return userService.login(email, password);
     }
+    
+    @GetMapping("/users/find-by-email")
+    public ResponseEntity<UserResponseRest> findByEmail(@RequestParam String email) {
+        return userService.searchByEmail(email);
+    }
 }

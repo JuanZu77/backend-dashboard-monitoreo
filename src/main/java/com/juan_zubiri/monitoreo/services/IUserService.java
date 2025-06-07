@@ -20,4 +20,6 @@ public interface IUserService {
 	public ResponseEntity<UserResponseRest> login(String email, String password);
 
 	public ResponseEntity<UserResponseRest> updatePassword (Long id, PasswordUpdateDTO passwordUpdateDTO);
+	
+	public ResponseEntity<UserResponseRest> searchByEmail(String email);
 }

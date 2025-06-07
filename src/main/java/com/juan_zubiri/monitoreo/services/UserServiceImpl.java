@@ -275,6 +275,28 @@ public class UserServiceImpl implements IUserService{
 	    }
 	}
 
+
+	@Override
+	public ResponseEntity<UserResponseRest> searchByEmail(String email) {
+		   UserResponseRest response = new UserResponseRest();
+
+	        try {
+	            Optional<User> user = userRepository.findByEmail(email);
+
+	            if (user.isPresent()) {
+	                response.setUser(user.get());
+	                response.setMessage("Usuario encontrado.");
+	                return new ResponseEntity<>(response, HttpStatus.OK);
+	            } else {
+	                response.setMessage("Usuario no encontrado.");
+	                return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+	            }
+	        } catch (Exception e) {
+	            response.setMessage("Error al buscar el usuario por correo.");
+	            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+	        }
+	    }
 	
 
+	
 }
