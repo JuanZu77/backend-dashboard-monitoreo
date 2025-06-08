@@ -14,9 +14,10 @@ public class CorsFilterConfig {
     @Bean
     CorsFilter corsFilter() {
         CorsConfiguration corsConfiguration = new CorsConfiguration();
-        corsConfiguration.setAllowedOrigins(Arrays.asList(
+        corsConfiguration.setAllowedOriginPatterns(Arrays.asList(
         	    "http://localhost:4200", 
-        	    "https://monitoreoapp-443123.rj.r.appspot.com"
+        	    "https://front-monitoreo-1034554845915.us-central1.run.app",
+        	    "https://*.run.app"
         	));
         corsConfiguration.addAllowedMethod("*");   // permitir los métodos (GET, POST, PUT, DELETE, etc.)
         corsConfiguration.addAllowedHeader("*");      // permitir los encabezados
