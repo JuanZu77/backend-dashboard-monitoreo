@@ -54,7 +54,7 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(Arrays.asList(
                 "http://localhost:4200", 
-                "https://monitoreoapp-443123.rj.r.appspot.com"
+                "https://front-monitoreo-1034554845915.us-central1.run.app"
             ));
         configuration.addAllowedMethod("*"); 
         configuration.addAllowedHeader("*"); 
