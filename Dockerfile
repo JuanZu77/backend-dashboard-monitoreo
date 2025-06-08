@@ -1,11 +1,23 @@
-# Usa una imagen base de OpenJDK
-FROM openjdk:17-jdk-slim
+# Imagen base con Maven y Java 17
+FROM maven:3.9.6-eclipse-temurin-17 AS build
 
-# Copia el archivo .jar generado por Spring Boot
-# Ver nombre del .jar generado al ejecutar maven install*/
-COPY target/Challenge-Monitoreo-0.0.1-SNAPSHOT.jar /app.jar  
+# Establecer directorio de trabajo
+WORKDIR /app
 
-# Expone el puerto 8080
+# Copiar archivos necesarios
+COPY pom.xml .
+COPY src ./src
+
+# Ejecutar build
+RUN mvn clean package -DskipTests
+
+# Fase de ejecución
+FROM eclipse-temurin:17-jdk-jammy
+
+# Copiar el .jar generado desde la fase anterior
+COPY --from=build /app/target/Challenge-Monitoreo-0.0.1-SNAPSHOT.jar /app.jar
+
+# Exponer el puerto
 EXPOSE 8080
 
 # Comando para ejecutar el backend
