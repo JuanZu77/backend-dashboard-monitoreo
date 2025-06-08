@@ -21,8 +21,7 @@ COPY --from=build /app/target/Challenge-Monitoreo-0.0.1-SNAPSHOT.jar /app.jar
 EXPOSE 8080
 
 # Comando para ejecutar el backend
-<<<<<<< HEAD
 ENTRYPOINT ["java", "-jar", "/app.jar"]
-=======
-ENTRYPOINT ["java", "-jar", "/app.jar"]
->>>>>>> 3d13230 (Fix DB config - pool + password + public key retrieval)
+
+
+
