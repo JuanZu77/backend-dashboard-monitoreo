@@ -35,6 +35,8 @@ public class SecurityConfig {
                                  "/api/alerts", "/api/alerts/{id}", "/api/alerts/total", "/api/alerts/count/{alertType}",
                                  "/api/sensors", "/api/sensors/{id}", "/api/sensors/count/{sensorType}")
                 .authenticated()
+                .requestMatchers(HttpMethod.PUT, "/api/users/{id}/update-password").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/users/find-by-email").permitAll()
                 .requestMatchers("/api/users").authenticated()
                 .requestMatchers("/api/register/**", "/api/login/**").permitAll()
                 .anyRequest().authenticated()

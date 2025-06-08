@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 //import com.juan_zubiri.monitoreo.dao.RegisterUserRepository;
 import com.juan_zubiri.monitoreo.dao.UserRepository;
+import com.juan_zubiri.monitoreo.dto.PasswordUpdateDTO;
 import com.juan_zubiri.monitoreo.dto.RegisterUserDTO;
 import com.juan_zubiri.monitoreo.dto.UserDTO;
 //import com.juan_zubiri.monitoreo.model.RegisterUser;
@@ -230,4 +231,72 @@ public class UserServiceImpl implements IUserService{
 		    }
 	}
 
+
+	@Override
+	public ResponseEntity<UserResponseRest> updatePassword(Long id, PasswordUpdateDTO passwordUpdateDTO) {
+	    UserResponseRest response = new UserResponseRest();
+	    try {
+	        // validar que la nueva contraseña
+	        if (passwordUpdateDTO.getNewPassword() == null || passwordUpdateDTO.getNewPassword().length() < 8) {
+	            response.setMessage("La nueva contraseña debe tener al menos 8 caracteres.");
+	            response.setMetadata("Error", "400", "Contraseña inválida");
+	            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+	        }
+
+	        // contraseñas deban coincidir
+	        if (!passwordUpdateDTO.getNewPassword().equals(passwordUpdateDTO.getConfirmPassword())) {
+	            response.setMessage("Las contraseñas no coinciden.");
+	            response.setMetadata("Error", "400", "Las contraseñas no coinciden");
+	            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+	        }
+
+	        // Buscar el usuario por ID
+	        Optional<User> userOpt = userRepository.findById(id);
+	        if (!userOpt.isPresent()) {
+	            response.setMessage("Usuario no encontrado");
+	            response.setMetadata("Error", "404", "Usuario no encontrado");
+	            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+	        }
+
+	        User user = userOpt.get();
+
+	        String encryptedPassword = passwordEncoder.encode(passwordUpdateDTO.getNewPassword());
+	        user.setPassword(encryptedPassword);
+	        userRepository.save(user);
+
+	        response.setMessage("Contraseña actualizada correctamente");
+	        response.setMetadata("Éxito", "00", "Contraseña actualizada");
+
+	        return ResponseEntity.ok(response);
+	    } catch (Exception e) {
+	        response.setMessage("Error al actualizar la contraseña");
+	        response.setMetadata("Error", "-1", "Error en el servidor");
+	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+	    }
+	}
+
+
+	@Override
+	public ResponseEntity<UserResponseRest> searchByEmail(String email) {
+		   UserResponseRest response = new UserResponseRest();
+
+	        try {
+	            Optional<User> user = userRepository.findByEmail(email);
+
+	            if (user.isPresent()) {
+	                response.setUser(user.get());
+	                response.setMessage("Usuario encontrado.");
+	                return new ResponseEntity<>(response, HttpStatus.OK);
+	            } else {
+	                response.setMessage("Usuario no encontrado.");
+	                return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+	            }
+	        } catch (Exception e) {
+	            response.setMessage("Error al buscar el usuario por correo.");
+	            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+	        }
+	    }
+	
+
+	
 }
