@@ -6,8 +6,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication(scanBasePackages = "com.juan_zubiri.monitoreo")
 public class ChallengeMonitoreoApplication {
 
-	public static void main(String[] args) {
-        
+	public static void main(String[] args) {   
 		SpringApplication.run(ChallengeMonitoreoApplication.class, args);
 	}
 
